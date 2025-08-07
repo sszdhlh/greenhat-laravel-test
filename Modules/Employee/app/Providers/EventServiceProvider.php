@@ -11,7 +11,11 @@ class EventServiceProvider extends ServiceProvider
      *
      * @var array<string, array<int, string>>
      */
-    protected $listen = [];
+    protected $listen = [
+        \Modules\Employee\Events\EmployeeRegistered::class => [
+            \Modules\Employee\Listeners\SendEmployeeRegistrationConfirmation::class,
+        ],
+    ];
 
     /**
      * Indicates if events should be discovered.

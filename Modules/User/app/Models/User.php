@@ -5,6 +5,7 @@ namespace Modules\User\Models;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -22,6 +23,7 @@ class User extends Authenticatable implements FilamentUser
     use AuthenticationLoggable,
         CamelCasing,
         HasApiTokens,
+        HasFactory,
         HasRolesAndAbilities,
         Notifiable,
         SoftDeletes,
@@ -55,5 +57,10 @@ class User extends Authenticatable implements FilamentUser
     public function employee(): HasOne
     {
         return $this->hasOne(Employee::class);
+    }
+
+    protected static function newFactory()
+    {
+        return \Database\Factories\UserFactory::new();
     }
 }
