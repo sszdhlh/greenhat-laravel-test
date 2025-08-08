@@ -201,6 +201,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('Greenhat')
             ->brandLogoHeight('50px')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
+            ->discoverResources(in: base_path('Modules/Course/app/Filament/Resources'), for: 'Modules\\Course\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->pages([
@@ -208,14 +209,15 @@ class AdminPanelProvider extends PanelProvider
                 SystemSettings::class,
             ])
             ->navigationGroups([
+                'Course Management',
                 'Staff',
                 'Settings',
                 'Logs',
             ])
             ->plugins([
-                TwoFactorAuthenticationPlugin::make()
-                    ->addTwoFactorMenuItem()
-                    ->enforceTwoFactorSetup(config('auth.two_factor.enabled')),
+                // TwoFactorAuthenticationPlugin::make()
+                //     ->addTwoFactorMenuItem()
+                //     ->enforceTwoFactorSetup(config('auth.two_factor.enabled')),
                 ActivitylogPlugin::make()
                     ->pluralLabel('Activities')
                     ->navigationGroup('Logs'),

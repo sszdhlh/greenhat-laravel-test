@@ -14,6 +14,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Modules\Employee\Models\Employee;
+use App\Filament\Resources\UserResource;
 
 class EmployeeResource extends Resource
 {
@@ -21,9 +22,9 @@ class EmployeeResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
-    protected static ?string $navigationGroup = 'Staff';
+    protected static ?string $navigationGroup = 'User Management';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
@@ -65,22 +66,58 @@ class EmployeeResource extends Resource
     public static function sidebarSchema(): array
     {
         return [
-            Section::make('Basic Information')
+            Section::make('Linked User Account')
+                ->description('User authentication data stored in users table')
                 ->schema([
-                    Placeholder::make('userName')
-                        ->label('Name')
+                    Placeholder::make('linkedUser')
+                        ->label('User Account')
                         ->inlineLabel()
-                        ->content(fn (Employee $record): string => $record->user->name),
-
-                    Placeholder::make('userEmail')
-                        ->label('Email')
-                        ->inlineLabel()
-                        ->content(fn (Employee $record): string => $record->user->email),
-
+                        ->content(fn (Employee $record): string => 
+                            $record->user->name . ' (' . $record->user->email . ')'
+                        ),
+                ]),
+            
+            Section::make('Employee Profile Data')
+                ->description('Challenge 01: Employee-specific data stored in employees table')
+                ->schema([
                     Placeholder::make('employeeRole')
                         ->label('Role')
                         ->inlineLabel()
                         ->content(fn (Employee $record): string => $record->role),
+
+                    Placeholder::make('highestQualification')
+                        ->label('Highest Qualification')
+                        ->inlineLabel()
+                        ->content(fn (Employee $record): string => $record->highest_qualification ?? 'Not specified'),
+
+                    Placeholder::make('desiredSalary')
+                        ->label('Desired Salary')
+                        ->inlineLabel()
+                        ->content(function (Employee $record): string {
+                            if ($record->desired_salary) {
+                                return '$' . number_format($record->desired_salary, 2);
+                            }
+                            return 'Not specified';
+                        }),
+
+                    Placeholder::make('note')
+                        ->label('Notes')
+                        ->inlineLabel()
+                        ->content(fn (Employee $record): string => $record->note ?? 'No notes'),
+                ]),
+
+            Section::make('Email Confirmation Tracking')
+                ->description('Challenge 01: Track Email Confirmation')
+                ->schema([
+                    Placeholder::make('confirmationEmailSent')
+                        ->label('Email Status')
+                        ->inlineLabel()
+                        ->content(function (Employee $record): string {
+                            if ($record->confirmation_email_sent_at) {
+                                return '✅ Sent on ' . $record->confirmation_email_sent_at->format('M j, Y g:i A');
+                            }
+                            return '❌ Not sent yet';
+                        }),
                 ]),
         ];
     }
@@ -91,13 +128,15 @@ class EmployeeResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('id')
-                    ->label('ID')
+                    ->label('Employee ID')
                     ->sortable(),
 
                 TextColumn::make('user.name')
-                    ->label('Name')
+                    ->label('User Name')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->url(fn (Employee $record): string => UserResource::getUrl('view', ['record' => $record->user]))
+                    ->tooltip('Click to view user details'),
 
                 TextColumn::make('user.email')
                     ->label('Email')
@@ -106,7 +145,30 @@ class EmployeeResource extends Resource
 
                 TextColumn::make('role')
                     ->badge()
-                    ->color('primary')
+                    ->color('primary'),
+
+                TextColumn::make('highest_qualification')
+                    ->label('Qualification')
+                    ->placeholder('Not specified')
+                    ->wrap(),
+
+                TextColumn::make('desired_salary')
+                    ->label('Desired Salary')
+                    ->money('USD')
+                    ->placeholder('Not specified'),
+
+                TextColumn::make('note')
+                    ->label('Notes')
+                    ->limit(30)
+                    ->placeholder('No notes')
+                    ->tooltip(fn (Employee $record): string => $record->note ?? 'No notes'),
+
+                TextColumn::make('confirmation_email_sent_at')
+                    ->label('Email Sent')
+                    ->dateTime()
+                    ->sortable()
+                    ->placeholder('Not sent')
+                    ->tooltip('When the registration confirmation email was sent'),
             ])
             ->filters([
                 SelectFilter::make('role')
